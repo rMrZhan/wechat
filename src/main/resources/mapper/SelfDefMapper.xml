@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.jianghuling.wechatapp.dao.SelfDefMapper">
+
+    <!--created by Jason @2018/9/16-->
+    <resultMap id="MissionBaseResultMap" type="top.jianghuling.wechatapp.model.Mission">
+        <id column="mission_id" jdbcType="VARCHAR" property="missionId" />
+        <result column="order_id" jdbcType="VARCHAR" property="orderId" />
+        <result column="taker_id" jdbcType="VARCHAR" property="takerId" />
+        <result column="accept_time" jdbcType="TIMESTAMP" property="acceptTime" />
+        <result column="finish_time" jdbcType="TIMESTAMP" property="finishTime" />
+    </resultMap>
+    <!--Created by Jason 2018/9/11-->
+    <resultMap id="BriefOrderMap" type="top.jianghuling.wechatapp.model.BriefOrder">
+        <id column="order_id" jdbcType="VARCHAR" property="orderId" />
+        <result column="note" jdbcType="VARCHAR" property="note" />
+        <result column="reward" jdbcType="REAL" property="reward" />
+        <result column="starttime" jdbcType="TIME" property="starttime" />
+        <result column="deadline" jdbcType="TIME" property="deadline" />
+        <result column="destination" jdbcType="VARCHAR" property="destination" />
+        <result column="release_time" jdbcType="TIMESTAMP" property="releaseTime" />
+        <result column="express_type" jdbcType="VARCHAR" property="expressType" />
+        <result column="goods_weight" jdbcType="VARCHAR" property="goodsWeight" />
+        <result column="take_address" jdbcType="VARCHAR" property="takeAddress" />
+        <result column="order_state" jdbcType="TINYINT" property="orderState" />
+    </resultMap>
+
+    <!--created by Jason @2018/9/16-->
+    <sql id="Brief_Order_List">
+    order_id, note, reward, take_address, destination, goods_weight,
+    starttime, deadline, release_time, express_type
+  </sql>
+
+    <!--created by Jason @2018/9/16-->
+    <select id="selectBriefOrder" resultMap="BriefOrderMap">
+        select
+        <include refid="Brief_Order_List"/>
+        from express_order
+        where order_state=#{orderState} and releaser_id &lt;&gt;#{userId}
+        order by release_time
+        limit #{startIndex},#{pageSize}
+    </select>
+
+    <!--created by Jason @2018/9/16-->
+    <select id="selectAllBriefOrder" resultMap="BriefOrderMap">
+        select
+        order_id, note, reward, take_address, destination, goods_weight,
+        starttime, deadline, release_time, express_type,order_state
+        from express_order
+        where releaser_id &lt;&gt;#{userId}
+         order by order_state asc, release_time desc
+        limit #{startIndex},#{pageSize}
+    </select>
+
+    <!--modified by jason @2018/9/28-->
+    <resultMap id="OrderLinkMission" type="top.jianghuling.wechatapp.model.OrderLinkMission">
+        <id column="order_id" jdbcType="VARCHAR" property="orderId" />
+        <result column="goods_code" jdbcType="VARCHAR" property="goodsCode" />
+        <result column="note" jdbcType="VARCHAR" property="note" />
+        <result column="reward" jdbcType="REAL" property="reward" />
+        <result column="host_name" jdbcType="VARCHAR" property="hostName" />
+        <result column="take_address" jdbcType="VARCHAR" property="takeAddress" />
+        <result column="destination" jdbcType="VARCHAR" property="destination" />
+        <result column="goods_weight" jdbcType="VARCHAR" property="goodsWeight" />
+        <result column="starttime" jdbcType="TIME" property="starttime" />
+        <result column="deadline" jdbcType="TIME" property="deadline" />
+        <result column="release_time" jdbcType="TIMESTAMP" property="releaseTime" />
+        <result column="express_type" jdbcType="VARCHAR" property="expressType" />
+        <result column="host_phone" jdbcType="VARCHAR" property="hostPhone" />
+        <result column="order_state" jdbcType="TINYINT" property="orderState" />
+        <result column="taker_phone" jdbcType="VARCHAR" property="takerPhone" />
+        <result column="finish_time" jdbcType="TIMESTAMP" property="finishTime"/>
+        <result column="accept_time" jdbcType="TIMESTAMP" property="acceptTime"/>
+    </resultMap>
+    <!--created by Jason @2018/9/16-->
+    <sql id="Order_Mission">
+    order_id, goods_code, note, reward, host_name, take_address, destination, goods_weight,
+    starttime, deadline, release_time, express_type, host_phone, order_state,
+    taker_phone,finish_time, accept_time
+  </sql>
+
+    <!--created by Jason @2018/9/16-->
+    <select id="selectMyRelease" resultMap="OrderLinkMission">
+        select
+        <include refid="Order_Mission"/>
+        from mission_order_view
+        where releaser_id=#{hostId} and releaser_del_tag=0
+        order by release_time desc
+        limit #{startIndex},#{pageSize}
+    </select>
+
+    <!--created by Jason @2018/9/16-->
+    <select id="selectMyAccept" resultMap="OrderLinkMission">
+        select
+        <include refid="Order_Mission"/>
+        from mission_order_view
+        where taker_id=#{takerId} and taker_del_tag=0
+        order by accept_time desc
+        limit #{startIndex},#{pageSize}
+    </select>
+
+    <!--created by Jason @2018/9/16-->
+    <update id="updateStateLock">
+        update
+        express_order
+        set order_state=#{newState},
+        version = version+1,
+        modify_time=now()
+        where order_id = #{orderId} and version =#{version}
+    </update>
+    <!--created by Jason @2018/9/16-->
+    <sql id="Mission_Base_Column_List">
+    mission_id, order_id, taker_id, accept_time, finish_time
+  </sql>
+    <!--created by Jason @2018/9/16-->
+    <select id="selectMissionByOrderId" resultMap="MissionBaseResultMap">
+        select
+        <include refid="Mission_Base_Column_List" />
+        from mission
+        where order_id=#{orderId}
+    </select>
+
+</mapper>
